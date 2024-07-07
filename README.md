@@ -40,8 +40,6 @@ LANFileTransfer
 
  **安装依赖项**：
 
-   确保你在项目目录（`LANFileTransfer`）中，并运行：
-
    ```bash
    npm install
    ```
