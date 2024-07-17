@@ -1,17 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAN_FTP</title>
+    <title>局域网文件传输</title>
     <style>
         body {
+            background-image: url(./background.png);
+            background-color: rgba(255, 255, 255, 0.5);
+            background-blend-mode: overlay;
             font-family: Arial, sans-serif;
-            margin: 0;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
+            background-color: #f4f4f4;
         }
         h1 {
+            color: #2c3e50;
             text-align: center;
+        }
+        #upload-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #file-input {
+            margin-bottom: 10px;
+        }
+        #upload-button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #upload-button:hover {
+            background-color: #2980b9;
+        }
+        #drop-zone {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #777;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        #drop-zone.highlight {
+            background-color: #ecf0f1;
         }
         table {
             width: 100%;
@@ -19,91 +61,66 @@
             margin-top: 20px;
         }
         th, td {
-            border: 1px solid #000000;
-            padding: 10px;
             text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
         }
-        form {
-            margin: 0 auto;
-            text-align: center;
+        th {
+            background-color: #3498db;
+            color: white;
         }
-        button {
-            margin: 0 4px;
-            width: 60px;
-            height: 30px;
-            border-radius:5px;
-            background-color: rgb(0, 225, 255);
-            border: 1px solid rgb(105, 105, 105);
+        tr:hover {
+            background-color: #f5f5f5;
         }
-        button :hover{
-            border: 0px;
+        .action-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
         }
-        #file-table{
-            width: 90%;
-            margin: 0 auto;
+        .action-btn:hover {
+            background-color: #27ae60;
         }
-        #name{
-            width: 73.5%;
+        .delete-btn {
+            background-color: #e74c3c;
         }
-        #file-input{
-            color: rgb(0, 217, 255);
+        .delete-btn:hover {
+            background-color: #c0392b;
         }
-        #main{
-            position: absolute;
-            left: 34%;
-            top: 90px;
-            width: 32%;
-            height: 600px;
-            border-radius:50px;
-        }
-        #kp{
-            position: absolute;
-            left: 34%;
-            top: 90px;
-            background-color: aliceblue;
-            width: 32%;
-            height: 600px;
-            border-radius:50px;
-            opacity:0.5;
-        }
-        body{
-            background-image: url('./壁纸.png');
-            background-size:100% 100%;
-            background-attachment:fixed;
-
-        }
-        
     </style>
 </head>
 <body>
-    <div id="kp">
-
+    <h1>局域网文件传输</h1>
+    
+    <div id="upload-section">
+        <form id="upload-form">
+            <input type="file" id="file-input" name="file">
+            <button type="submit" id="upload-button">上传</button>
+        </form>
+        <div id="drop-zone">
+            拖放文件到这里上传
+        </div>
     </div>
-    <div id="main">
-        <h1>局域网文件传输</h1>
-    <form id="upload-form" enctype="multipart/form-data">
-        <input type="file" id="file-input" name="file">
-        <button type="submit">上传</button>
-    </form>
-    <br>
+
     <table id="file-table">
         <thead>
             <tr>
-                <th id="name">文件名</th>
-                <th id="tell">操作</th>
+                <th>文件名</th>
+                <th>操作</th>
             </tr>
         </thead>
-        <tbody id="file-list"></tbody>
+        <tbody id="file-list">
+            <!-- 文件列表将在这里动态添加 -->
+        </tbody>
     </table>
-    </div>
-    
-    <script>
-        document.getElementById('upload-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData();
-            const fileInput = document.getElementById('file-input');
-            formData.append('file', fileInput.files[0]);
 
+    <script>
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
             fetch('/upload', {
                 method: 'POST',
                 body: formData
@@ -111,7 +128,6 @@
             .then(result => {
                 if (result.success) {
                     alert('文件上传成功');
-                    fileInput.value = ''; // 清空输入
                     loadFiles(); // 重新加载文件列表
                 } else {
                     alert('文件上传失败');
@@ -119,6 +135,17 @@
             }).catch(error => {
                 console.error('文件上传错误:', error);
             });
+        }
+
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length > 0) {
+                uploadFile(fileInput.files[0]);
+                fileInput.value = ''; // 清空输入
+            } else {
+                alert('请选择一个文件');
+            }
         });
 
         function loadFiles() {
@@ -132,17 +159,19 @@
                         const fileNameTd = document.createElement('td');
                         fileNameTd.textContent = file;
                         tr.appendChild(fileNameTd);
-
                         const actionsTd = document.createElement('td');
+                        
                         const downloadButton = document.createElement('button');
                         downloadButton.textContent = '下载';
+                        downloadButton.className = 'action-btn';
                         downloadButton.onclick = function() {
                             window.location.href = `files/${file}`;
                         };
                         actionsTd.appendChild(downloadButton);
-
+                        
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = '删除';
+                        deleteButton.className = 'action-btn delete-btn';
                         deleteButton.onclick = function() {
                             fetch(`/delete?file=${encodeURIComponent(file)}`, {
                                 method: 'DELETE'
@@ -160,7 +189,7 @@
                             });
                         };
                         actionsTd.appendChild(deleteButton);
-
+                        
                         tr.appendChild(actionsTd);
                         fileList.appendChild(tr);
                     });
@@ -168,6 +197,44 @@
                 .catch(error => {
                     console.error('获取文件列表错误:', error);
                 });
+        }
+
+        // 改进的拖放上传功能
+        const dropZone = document.getElementById('drop-zone');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('highlight');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('highlight');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                uploadFile(files[0]);  // 只上传第一个文件
+            }
         }
 
         // 页面加载时加载文件列表
